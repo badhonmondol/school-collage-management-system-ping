@@ -2,13 +2,11 @@ name: Keep Render Server Alive
 
 on:
   schedule:
-    # Multiple schedules to ensure reliability despite GitHub Actions delays
-    # Runs every 5 minutes with different offsets
-    - cron: '*/5 * * * *'      # Main schedule
-    - cron: '1,11,21,31,41,51 * * * *'  # Offset by 1 minute
-    - cron: '3,13,23,33,43,53 * * * *'  # Offset by 3 minutes
+    # Runs every 6 minutes to keep server alive
+    # This ensures server never sleeps (15 min timeout)
+    - cron: '*/6 * * * *'
   
-  # Manual trigger option
+  # Manual trigger option (run anytime from Actions tab)
   workflow_dispatch:
 
 jobs:
@@ -36,6 +34,12 @@ jobs:
             
             if [ "$response" = "200" ]; then
               echo "✅ SUCCESS! Server is ALIVE (Status: $response)"
+              
+              # Show health details
+              health_data=$(curl -s --max-time 30 \
+                https://jangal-sammilani-adarsha-high-school-and.onrender.com/api/health)
+              echo "📊 Health Info: $health_data"
+              
               SUCCESS=true
               break
             else
@@ -50,6 +54,23 @@ jobs:
           if [ "$SUCCESS" = false ]; then
             echo ""
             echo "⚠️  WARNING: Server may be sleeping or down!"
+          fi
+      
+      - name: Quick Keep-Alive Ping
+        continue-on-error: true
+        run: |
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "⚡ Quick keep-alive ping..."
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          keepalive_response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+            https://jangal-sammilani-adarsha-high-school-and.onrender.com/api/keep-alive || echo "000")
+          
+          if [ "$keepalive_response" = "200" ]; then
+            echo "✅ Keep-alive successful (Status: $keepalive_response)"
+          else
+            echo "⚠️  Keep-alive status: $keepalive_response"
           fi
       
       - name: Ping Public Home
@@ -114,5 +135,5 @@ jobs:
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "✨ Keep-alive ping completed!"
           echo "📅 Time: $(date)"
-          echo "🔄 Next ping: ~5 minutes"
+          echo "🔄 Next ping: ~6 minutes"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
