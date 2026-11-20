@@ -1,0 +1,59 @@
+name: Database Keep Alive
+
+on:
+  schedule:
+    # দিনে 3 বার: সকাল 9:00, দুপুর 2:00, রাত 9:00 (UTC: 3:00, 8:00, 15:00)
+    - cron: '0 3,8,15 * * *'
+  
+  # Manual trigger করার option
+  workflow_dispatch:
+
+jobs:
+  ping-database:
+    name: Ping Database Connection
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping Database Connection
+        continue-on-error: true
+        run: |
+          echo "🗄️  Checking database connection at $(date)"
+          
+          # Database connection check with retry
+          for i in {1..5}; do
+            db_response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+              https://jangal-sammilani-adarsha-high-school-and.onrender.com/api/auth/check || echo "000")
+            
+            if [ "$db_response" = "200" ] || [ "$db_response" = "401" ]; then
+              echo "✅ Database is responding (Status: $db_response)"
+              break
+            else
+              echo "⚠️  Attempt $i: Database responded with status: $db_response"
+              if [ $i -lt 5 ]; then
+                echo "   Retrying in 15 seconds..."
+                sleep 15
+              fi
+            fi
+          done
+      
+      - name: Verify Database with Students Query
+        continue-on-error: true
+        run: |
+          echo "📊 Testing database query capability..."
+          
+          # Test a query endpoint
+          query_response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            https://jangal-sammilani-adarsha-high-school-and.onrender.com/api/students || echo "000")
+          
+          if [ "$query_response" = "200" ] || [ "$query_response" = "401" ]; then
+            echo "✅ Database queries working (Status: $query_response)"
+          else
+            echo "⚠️  Database query status: $query_response"
+          fi
+      
+      - name: Summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✨ Database ping completed at $(date)"
+          echo "   Next ping: 8 hours from now"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
