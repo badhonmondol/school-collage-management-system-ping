@@ -1,0 +1,62 @@
+name: Keep Server Alive
+
+on:
+  schedule:
+    # প্রতি 10 মিনিটে একবার চলবে
+    - cron: '*/10 * * * *'
+  
+  # Manual trigger করার option
+  workflow_dispatch:
+
+jobs:
+  ping-server:
+    name: Ping Render Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping Health Endpoint
+        run: |
+          echo "🚀 Pinging server at $(date)"
+          
+          # Server health check
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            https://jangal-sammilani-adarsha-high-school-and.onrender.com/api/health)
+          
+          if [ $response -eq 200 ]; then
+            echo "✅ Server is alive (Status: $response)"
+          else
+            echo "⚠️  Server responded with status: $response"
+          fi
+      
+      - name: Ping Database Connection
+        run: |
+          echo "🗄️  Checking database connection..."
+          
+          # Database connection check (auth endpoint)
+          db_response=$(curl -s -o /dev/null -w "%{http_code}" \
+            https://jangal-sammilani-adarsha-high-school-and.onrender.com/api/auth/check)
+          
+          if [ $db_response -eq 200 ] || [ $db_response -eq 401 ]; then
+            echo "✅ Database is responding (Status: $db_response)"
+          else
+            echo "⚠️  Database responded with status: $db_response"
+          fi
+      
+      - name: Ping Public Home
+        run: |
+          echo "🏠 Checking public home..."
+          
+          home_response=$(curl -s -o /dev/null -w "%{http_code}" \
+            https://jangal-sammilani-adarsha-high-school-and.onrender.com/api/public-home)
+          
+          if [ $home_response -eq 200 ]; then
+            echo "✅ Public home is accessible (Status: $home_response)"
+          else
+            echo "⚠️  Public home responded with status: $home_response"
+          fi
+      
+      - name: Summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✨ Keep-alive ping completed at $(date)"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
