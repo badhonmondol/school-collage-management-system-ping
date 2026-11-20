@@ -26,55 +26,22 @@ Render এর free tier এ 15 মিনিট inactivity থাকলে server
 
 ---
 
-## 🚀 Setup - GitHub Actions (Recommended)
+## 🚀 Setup - GitHub Actions
 
-এটি **সবচেয়ে ভালো এবং সম্পূর্ণ FREE** solution!
+### ✅ Already Configured!
 
-### Step 1: Workflow Files Setup
+এই repository তে ইতিমধ্যে **workflows setup** করা আছে:
 
-এই folder এ **2টি workflow file** আছে:
+📁 `.github/workflows/`
+  - `keep-alive.yml` - Server ping (প্রতি 5 মিনিট)
+  - `database-ping.yml` - Database ping (দিনে 3 বার)
 
-1. **`.github-workflows-keep-alive.yml`** - Server ping (প্রতি 5 মিনিট)
-2. **`.github-workflows-database-ping.yml`** - Database ping (দিনে 3 বার)
+### 🎯 এটি কিভাবে কাজ করে:
 
-এই দুটি file project এর `.github/workflows/` folder এ copy করুন:
-
-**Option A: Command Line (সহজ)**
-```bash
-# ping folder থেকে
-cp .github-workflows-keep-alive.yml ../.github/workflows/keep-alive.yml
-cp .github-workflows-database-ping.yml ../.github/workflows/database-ping.yml
-```
-
-**Option B: Manually**
-1. `.github/workflows/` folder এ যান (না থাকলে তৈরি করুন)
-2. দুটি file তৈরি করুন:
-   - `keep-alive.yml` - Server ping এর জন্য
-   - `database-ping.yml` - Database ping এর জন্য
-3. সংশ্লিষ্ট `.github-workflows-*.yml` files এর content copy করে paste করুন
-
-### Step 2: GitHub এ Push করুন
-
-```bash
-git add .
-git commit -m "Add keep-alive GitHub Action"
-git push
-```
-
-### Step 3: Verify করুন
-
-1. GitHub repository তে যান
-2. **"Actions"** tab এ click করুন
-3. **2টি workflow** দেখতে পাবেন:
-   - **"Keep Server Alive"** - প্রতি 5 মিনিটে run হয়
-   - **"Database Keep Alive"** - দিনে 3 বার run হয়
-
-### Step 4: Manual Test (Optional)
-
-Actions tab থেকে:
-1. "Keep Server Alive" workflow select করুন
-2. "Run workflow" button এ click করুন
-3. কিছু সেকেন্ডের মধ্যে result দেখতে পাবেন
+1. Repository GitHub এ push করলেই automatically activate হবে
+2. কোন extra configuration লাগবে না
+3. Workflows automatically scheduled time এ run হবে
+4. GitHub Actions tab এ logs দেখতে পারবেন
 
 ---
 
