@@ -2,14 +2,8 @@ name: Keep Render Server Alive
 
 on:
   schedule:
-    # Multiple offsets to beat GitHub Actions cron delay
-    - cron: '0,14,28,42,56 * * * *'
-    - cron: '7,21,35,49 * * * *'
+    - cron: '0,7,14,21,28,35,42,49,56 * * * *'
   workflow_dispatch:
-  # Re-trigger itself after each run (chain reaction)
-  workflow_run:
-    workflows: ["Keep Render Server Alive"]
-    types: [completed]
 
 jobs:
   ping:
@@ -26,7 +20,7 @@ jobs:
 
           for i in 1 2 3; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$SERVER/api/health" || echo "000")
-            echo "  attempt $i → /api/health → $STATUS"
+            echo "  attempt $i → $STATUS"
             if [ "$STATUS" = "200" ]; then
               echo "✅ Server alive!"
               break
@@ -34,7 +28,6 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done
 
-          # Additional endpoints to keep DB warm
           for ep in /api/keep-alive /api/public-home; do
             S=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$SERVER$ep" || echo "000")
             echo "  $ep → $S"
